@@ -1,0 +1,64 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: order-service-route
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/orders, /orders/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: orderServiceCB
+                fallbackUri: forward:/orderServiceFallback
+        - id: product-service-route
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/products, /products/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: productServiceCB
+                fallbackUri: forward:/productServiceFallback
+        - id: payment-service-route
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payment, /payment/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentServiceCB
+                fallbackUri: forward:/paymentServiceFallback
+resilience4j:
+  circuitbreaker:
+    instances:
+      orderServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        eventConsumerBufferSize: 10
+      productServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        eventConsumerBufferSize: 10
+      paymentServiceCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        eventConsumerBufferSize: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
